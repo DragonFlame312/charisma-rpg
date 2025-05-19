@@ -8,6 +8,16 @@
   <link rel="stylesheet" href="/src/styles/ui.css">
 </head>
 <body>
+  <!-- ВРЕМЕННЫЙ UI для тестирования смены сцен и эмоций. Удалить после тестов! -->
+  <div id="test-ui" style="padding:10px; position:fixed; left:50%; top:10px; transform:translateX(-50%); background:#232347e8; color:#fff; z-index:1000; border-radius:10px;">
+    <strong>Тестовый UI (удалить после теста)</strong><br>
+    Локация:
+    <button onclick="window.setTestScene && window.setTestScene('bedroom')">Спальня</button>
+    <button onclick="window.setTestScene && window.setTestScene('kitchen')">Кухня</button>
+    &nbsp;|&nbsp; Эмоция:
+    <button onclick="window.setTestEmotion && window.setTestEmotion('happy')">😊 happy</button>
+    <button onclick="window.setTestEmotion && window.setTestEmotion('sad')">😢 sad</button>
+  </div>
   <div class="main-layout">
     <aside class="panel left-panel">
       <div id="stats-panel"></div>

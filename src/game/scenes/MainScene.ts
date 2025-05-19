@@ -1,28 +1,39 @@
 import Phaser from 'phaser';
+import { scenes } from '../models/sceneDefs';
 
 export class MainScene extends Phaser.Scene {
+  currentSceneKey: string = 'bedroom'; // по-умолчанию
+
   constructor() {
     super('MainScene');
   }
 
   preload() {
-    // Здесь могут быть ассеты, сейчас — абстракция
+    // Получаем нужную сцену
+    const s = scenes[this.currentSceneKey];
+    this.load.image('bg', s.background);
+    this.load.image('npc_base', s.npcSprite);
+    if (s.npcEmotion) {
+      this.load.image('npc_emotion', `/public/npc/girl/emotions/${s.npcEmotion}.png`);
+    }
   }
 
   create() {
-    // Базовый задник — градиент (методом graphics)
-    const g = this.add.graphics();
-    g.fillGradientStyle(0x181d38, 0x292350, 0x1b1833, 0x201a32, 1);
-    g.fillRect(0, 0, this.cameras.main.width, this.cameras.main.height);
+    const s = scenes[this.currentSceneKey];
+    const w = this.cameras.main.width;
+    const h = this.cameras.main.height;
 
-    // Силуэт — круглый NPC, слегка прозрачный, для абстракции
-    const cx = this.cameras.main.width / 2;
-    const cy = this.cameras.main.height / 2 + 40;
-    const radius = Math.min(cx, cy, 90);
-    this.add.circle(cx, cy, radius, 0x444486, 0.60)
-      .setStrokeStyle(6, 0xc151a0, 0.35);
-    // "Голова"
-    this.add.circle(cx, cy - radius - 36, radius * 0.48, 0x6666aa, 0.68);
+    // Фон
+    this.add.image(w / 2, h / 2, 'bg').setOrigin(0.5).setDisplaySize(w, h);
+
+    // NPC (базовое тело)
+    this.add.image(w / 2, h * 0.7, 'npc_base').setOrigin(0.5).setScale(0.7);
+
+    // Слой эмоции (если есть)
+    if (s.npcEmotion) {
+      this.add.image(w / 2, h * 0.7, 'npc_emotion').setOrigin(0.5).setScale(0.7);
+    }
+    // В будущем: для npcBodyParts повторить add.image по ключам
   }
 
   update() {

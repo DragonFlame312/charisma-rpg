@@ -8,19 +8,26 @@ import './styles/ui.css';
 import { MainScene } from './game/scenes/MainScene';
 
 // Импортируем определения сцен и типов действий
-import { scenes, SceneDef } from './game/sceneDefs';
+import { scenes, SceneDef } from './game/models/sceneDefs';
 import { GameAction } from './ui/ActionsPanel';
 
 let char = Character.load();
 let statsPanel: StatsPanel | null = null;
 let actionsPanel: ActionsPanel | null = null;
 
-// Управление сценой
-let currentSceneKey: keyof typeof scenes = 'bedroom';
+// --- VARS for test UI ---
+let currentSceneKey: keyof typeof scenes = (localStorage.getItem('testSceneKey') as keyof typeof scenes) || 'bedroom';
+let currentEmotion: string = localStorage.getItem('testEmotion') || scenes[currentSceneKey]?.npcEmotion || 'happy';
+let phaserGame: Phaser.Game | null = null;
 
 function switchScene(key: keyof typeof scenes) {
   currentSceneKey = key;
+  localStorage.setItem('testSceneKey', currentSceneKey);
+  // при смене сцены берём дефолтную эмоцию из сцены
+  currentEmotion = scenes[currentSceneKey]?.npcEmotion || 'happy';
+  localStorage.setItem('testEmotion', currentEmotion);
   renderActions();
+  startGameScene();
   // Здесь можно добавить отрисовку фона, NPC, bubble и т.д.
 }
 
@@ -128,25 +135,62 @@ function reinitPanels() {
 
 reinitPanels();
 
-// Инициализация Phaser
-const canvasDiv = document.getElementById('game-canvas')!;
-canvasDiv.innerHTML = '';
-const width = canvasDiv.clientWidth || 600;
-const height = 430;
+// --- PHASER GAME INIT/RESTART LOGIC ---
 
-const phaserGame = new Phaser.Game({
-  type: Phaser.AUTO,
-  width,
-  height,
-  backgroundColor: '#181d38',
-  parent: 'game-canvas',
-  scene: [MainScene],
-  scale: {
-    mode: Phaser.Scale.FIT,
-    autoCenter: Phaser.Scale.CENTER_BOTH,
-    width,
-    height
-  },
-  physics: { default: 'arcade', arcade: { debug: false } },
-  transparent: false
-});
+function startGameScene() {
+  const container = document.getElementById('game-canvas');
+  if (!container) return;
+  container.innerHTML = '';
+  if (phaserGame) {
+    phaserGame.destroy(true);
+    phaserGame = null;
+  }
+  // Патчим сцену с текущими настройками эмоции
+  const sceneObj = { ...scenes[currentSceneKey], npcEmotion: currentEmotion };
+  class PatchedScene extends MainScene {
+    currentSceneKey = currentSceneKey;
+    preload() {
+      const s = sceneObj;
+      this.load.image('bg', s.background);
+      this.load.image('npc_base', s.npcSprite);
+      if (s.npcEmotion) {
+        this.load.image('npc_emotion', `/public/npc/girl/emotions/${s.npcEmotion}.png`);
+      }
+    }
+    create() {
+      const s = sceneObj;
+      const w = this.cameras.main.width;
+      const h = this.cameras.main.height;
+      this.add.image(w / 2, h / 2, 'bg').setOrigin(0.5).setDisplaySize(w, h);
+      this.add.image(w / 2, h * 0.7, 'npc_base').setOrigin(0.5).setScale(0.7);
+      if (s.npcEmotion) {
+        this.add.image(w / 2, h * 0.7, 'npc_emotion').setOrigin(0.5).setScale(0.7);
+      }
+    }
+  }
+  phaserGame = new (window as any).Phaser.Game({
+    width: 700,
+    height: 560,
+    type: Phaser.AUTO,
+    parent: 'game-canvas',
+    scene: PatchedScene
+  });
+}
+startGameScene();
+
+// Методы для тестовых кнопок
+(window as any).setTestScene = function(key: string) {
+  if (scenes[key]) {
+    currentSceneKey = key as keyof typeof scenes;
+    localStorage.setItem('testSceneKey', currentSceneKey);
+    currentEmotion = scenes[currentSceneKey]?.npcEmotion || 'happy';
+    localStorage.setItem('testEmotion', currentEmotion);
+    renderActions();
+    startGameScene();
+  }
+};
+(window as any).setTestEmotion = function(emotion: string) {
+  currentEmotion = emotion;
+  localStorage.setItem('testEmotion', currentEmotion);
+  startGameScene();
+};
