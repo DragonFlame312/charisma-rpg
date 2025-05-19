@@ -1,0 +1,42 @@
+:root {
+  --clr-bg: #17181c;
+  --clr-panel: #23242b;
+  --clr-accent: #c151a0;
+  --clr-txt: #f2ebfa;
+  --clr-txt-secondary: #b4a5c6;
+  --clr-border: #383452;
+  --clr-btn: #2c273d;
+  --clr-btn-hover: #3e3553;
+  --stat-hp: #ee4266;
+  --stat-def: #6c75fa;
+  --stat-int: #1acaed;
+  --stat-cha: #f5c542;
+  --stat-lvl: #b900ff;
+}
+
+body {
+  background: var(--clr-bg);
+  color: var(--clr-txt);
+  font-family: 'Segoe UI', 'Verdana', sans-serif;
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+}
+
+.panel {
+  background: var(--clr-panel);
+  border-radius: 18px;
+  box-shadow: 0 4px 28px 0 #0a0b12cc;
+  padding: 26px 24px;
+  margin: 16px;
+}
+
+@media (max-width: 800px) {
+  .main-layout {
+    flex-direction: column;
+  }
+  .panel {
+    margin: 10px 0;
+  }
+}
+// ...[существующий код, если есть]...
